@@ -1,0 +1,30 @@
+<h1>Nieuwe prestatie</h1>
+
+<form action="/add" method="post">
+
+    Naam:
+    <input name="name"><br><br>
+
+    Discipline:
+    <select name="discipline">
+        {% for d in disciplines %}
+        <option value="{{ d }}">{{ d }}</option>
+        {% endfor %}
+    </select><br><br>
+
+    Resultaat:
+    <label>Resultaat (vb: 02"30'10):</label><br>
+<input name="result"><br><br>
+
+
+    Datum:
+    <input type="date" name="date"><br><br>
+
+    <button type="submit">Opslaan</button>
+
+</form>
+
+<br>
+<a href="/performances">Bekijk prestaties</a>
+<br>
+<a href="/pr">Bekijk PR</a>

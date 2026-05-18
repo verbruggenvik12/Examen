@@ -1,0 +1,10 @@
+<h1>Beste prestaties</h1>
+
+<ul>
+{% for p in prs %}
+    <li>{{ p.discipline }} → {{ p.best }}</li>
+{% endfor %}
+</ul>
+
+<a href="/">Terug</a>
+``
