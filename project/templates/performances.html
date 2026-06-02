@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="nl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Mijn prestaties</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+
+<h1>Mijn prestaties</h1>
+
+<form method="get" action="/performances" class="filter-form">
+    <label for="discipline">Discipline</label>
+    <select id="discipline" name="discipline">
+        <option value="">Alle disciplines</option>
+        {% for d in disciplines %}
+            <option value="{{ d }}" {% if d == selected_discipline %}selected{% endif %}>{{ d }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="sort">Sorteren op</label>
+    <select id="sort" name="sort">
+        <option value="" {% if not selected_sort %}selected{% endif %}>Standaard</option>
+        <option value="fastest" {% if selected_sort == "fastest" %}selected{% endif %}>Snelste tijd</option>
+        <option value="slowest" {% if selected_sort == "slowest" %}selected{% endif %}>Traagste tijd</option>
+        <option value="recent" {% if selected_sort == "recent" %}selected{% endif %}>Recentste datum</option>
+        <option value="oldest" {% if selected_sort == "oldest" %}selected{% endif %}>Langst geleden</option>
+    </select>
+
+    <button type="submit">Toepassen</button>
+    <a href="/performances" class="btn-reset">Reset</a>
+</form>
+
+<table class="results">
+    <thead>
+        <tr>
+            <th>Naam</th>
+            <th>Discipline</th>
+            <th>Resultaat</th>
+            <th>Wind</th>
+            <th>Datum</th>
+            <th>Acties</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in performances %}
+        <tr>
+            <td>{{ p.name }}</td>
+            <td>{{ p.discipline }}</td>
+            <td>{{ p.result }}</td>
+
+            <td>
+                {% if p.wind_speed %}
+                    {% if p.invalid_wind %}
+                        <span style="color:#f87171">{{ p.wind_speed }} </span>
+                    {% else %}
+                        {{ p.wind_direction }} {{ p.wind_speed }} m/s
+                    {% endif %}
+                {% else %}
+                    - 
+                {% endif %}
+            </td>
+            <td>{{ p.date | format_date }}</td>
+            <td class="action-cell">
+                <form action="/delete" method="post" style="margin:0;">
+                    <input type="hidden" name="id" value="{{ p.id }}">
+                    <button type="submit" class="btn-action btn-delete">Delete</button>
+                </form>
+                
+                <button type="button" class="btn-action btn-edit" onclick="window.location.href='/edit/{{ p.id }}'">Edit</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<br>
+<ul class="main-menu" style="list-style: none; padding: 0; display: flex; gap: 10px;">
+    <li><a href="/pr">Bekijk PR</a></li>
+    <li><a href="/">Terug</a></li>
+    <li><a href="/logout">Logout</a></li>
+</ul>
+
+</div>
+</body>
+</html>

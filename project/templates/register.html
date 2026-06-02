@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="nl">
+<!-- Registratiepagina voor nieuwe gebruikers -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Register</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+
+<h1>Register</h1>
+
+<!-- Formulier voor aanmaken van een nieuwe account -->
+<form method="post" class="form-card">
+    <input name="username"><br><br>
+    <input type="password" name="password"><br><br>
+    <button>Register</button>
+</form>
+
+</div>
+</body>
+</html>

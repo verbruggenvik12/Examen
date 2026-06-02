@@ -1,4 +1,19 @@
+<!doctype html>
+<html lang="nl">
+<!-- Foutpagina voor het weergeven van een foutmelding -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Fout</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+
 <h1>Fout</h1>
 <p>{{ message }}</p>
-
 <a href="/">Terug</a>
+
+</div>
+</body>
+</html>

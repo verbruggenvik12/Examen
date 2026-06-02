@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="nl">
+<!-- Pagina om een bestaande prestatie te bewerken -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Prestatie aanpassen</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+
+<h1>Prestatie aanpassen</h1>
+
+<!-- Formulier voor aanpassen van de gegevens van een prestatie -->
+<form method="post" class="form-card">
+
+Naam:<br>
+<input name="name" value="{{ p.name }}"><br><br>
+
+Discipline:<br>
+<select id="discipline" name="discipline">
+    {% for d in disciplines %}
+    <option value="{{ d }}" {% if d == p.discipline %}selected{% endif %}>
+        {{ d }}
+    </option>
+    {% endfor %}
+</select><br><br>
+
+<div id="wind-fields" style="display:none;">
+    <label for="wind_speed">Windmeting (m/s) <span class="example">(vb: 3,2)</span></label><br>
+    <input id="wind_speed" name="wind_speed" placeholder="Windmeting" value="{{ p.wind_speed or '' }}"><br><br>
+
+    <label for="wind_direction">Windrichting</label><br>
+    <select id="wind_direction" name="wind_direction">
+        <option value="meewind" {% if p.wind_direction == 'meewind' %}selected{% endif %}>Meewind</option>
+        <option value="tegenwind" {% if p.wind_direction == 'tegenwind' %}selected{% endif %}>Tegenwind</option>
+    </select><br><br>
+</div>
+
+Resultaat:<br>
+<input name="result" value="{{ p.result }}"><br><br>
+
+Datum:<br>
+<input type="date" name="date" value="{{ p.date }}"><br><br>
+
+<button type="submit">Opslaan</button>
+
+</form>
+
+<br>
+<a href="/admin">Terug</a>
+
+</div>
+<script>
+    const editDiscipline = document.getElementById('discipline');
+    const editWindFields = document.getElementById('wind-fields');
+
+    const editWindInput = document.getElementById('wind_speed');
+    const editWindLabel = document.querySelector('label[for="wind_speed"]');
+
+    function toggleEditWindFields() {
+        const value = editDiscipline.value;
+        if (value === '100m' || value === '200m') {
+            editWindFields.style.display = 'block';
+        } else {
+            editWindFields.style.display = 'none';
+            editWindInput.value = '';
+            document.getElementById('wind_direction').value = 'meewind';
+            updateEditWindWarning();
+        }
+    }
+
+    function updateEditWindWarning() {
+        const rawValue = editWindInput.value.replace(',', '.').trim();
+        const speed = parseFloat(rawValue);
+        const isWarning = !isNaN(speed) && speed >= 2.0;
+
+        if (isWarning) {
+            editWindLabel.classList.add('warning-text');
+            editWindInput.classList.add('warning-input');
+        } else {
+            editWindLabel.classList.remove('warning-text');
+            editWindInput.classList.remove('warning-input');
+        }
+    }
+
+    editDiscipline.addEventListener('change', toggleEditWindFields);
+    editWindInput.addEventListener('input', updateEditWindWarning);
+    toggleEditWindFields();
+    updateEditWindWarning();
+</script>
+</div>
+</body>
+</html>

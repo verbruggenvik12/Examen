@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="nl">
+<!-- Trainerdashboard met overzicht van alle prestaties -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Trainer dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+
+<h1>Trainer dashboard</h1>
+
+<!-- Tabel met prestaties en acties voor de trainer -->
+<table class="results">
+<tr>
+    <th>Gebruiker</th>
+    <th>Discipline</th>
+    <th>Resultaat</th>
+    <th>Wind</th>
+    <th>Datum</th>
+    <th>Acties</th>
+</tr>
+
+{% for p in performances %}
+<tr>
+    <td>{{ p.username }}</td>
+    <td>{{ p.discipline }}</td>
+    <td>{% if p.invalid_wind %}<span style="color:#f87171">{{ p.result }} </span>{% else %}{{ p.result }}{% endif %}</td>
+    <td>{{ p.wind_direction or '' }} {{ p.wind_speed or '-' }}</td>
+    <td>{{ p.date | format_date }}</td>
+
+    <td>
+        <!--  DELETE -->
+        <form action="/delete" method="post" style="display:inline;">
+            <input type="hidden" name="id" value="{{ p.id }}">
+            <button type="submit">Delete</button>
+        </form>
+
+        <!--  EDIT -->
+        <a href="/edit/{{ p.id }}" style="display:inline;">
+    <button>Edit</button>
+</a>
+    </td>
+</tr>
+{% endfor %}
+</table>
+
+<br>
+<a href="/">Terug</a> <br>
+<a href="/pr">Bekijk PR</a> <br>
+<a href="/logout">Logout</a>
+
+</div>
+</body>
+</html>

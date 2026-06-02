@@ -1,0 +1,294 @@
+/* =========================
+   FONTS & THEME
+========================= */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+
+:root{
+    --track-red: #ef4444;
+    --track-orange: #f97316;
+    --track-yellow: #facc15;
+    --track-blue: #0ea5e9;
+    --track-purple: #7c3aed;
+
+    --good: #22c55e;
+    --bad: #f87171;
+
+    --glass: rgba(255,255,255,0.04);
+    --glass-border: rgba(255,255,255,0.08);
+    --text: #aca9f3;
+    --muted: rgba(255,255,255,0.65);
+}
+
+/* =========================
+   BODY (TRACK STADIUM FEEL)
+========================= */
+body{
+    margin:0;
+    font-family: Inter, system-ui, Arial;
+    color: var(--text);
+    background:
+    radial-gradient(circle at top, rgba(239,68,68,0.12), transparent 40%),
+    radial-gradient(circle at left, rgba(14,165,233,0.12), transparent 45%),
+    radial-gradient(circle at right, rgba(124,58,237,0.12), transparent 45%),
+    linear-gradient(135deg, #050816, #101b32);
+    padding:40px 20px;
+}
+
+/* =========================
+   MAIN CONTAINER (STADIUM CARD)
+========================= */
+.container{
+    max-width:1200px;
+    margin:0 auto;
+    padding:34px;
+    border-radius:22px;
+    background: var(--glass);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border:1px solid var(--glass-border);
+    box-shadow:
+    0 25px 70px rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(255,255,255,0.04);
+    position:relative;
+    overflow:hidden;
+}
+
+/* subtiele “track lines” effect */
+.container::before{
+    content:"";
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:
+    repeating-linear-gradient(
+        90deg,
+        rgba(255,255,255,0.02) 0px,
+        rgba(255,255,255,0.02) 1px,
+        transparent 1px,
+        transparent 80px
+    );
+    opacity:0.3;
+    pointer-events:none;
+}
+
+/* =========================
+   TITELS (SPORT STYLE)
+========================= */
+h1{
+    font-size:34px;
+    margin-bottom:18px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    background: linear-gradient(90deg, var(--track-blue), var(--track-purple));
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+h2{
+    color:#f1f5f9;
+}
+
+/* =========================
+   FORMS
+========================= */
+input,
+select,
+textarea{
+    border-radius:14px;
+    border:1px solid var(--glass-border);
+    background: rgba(255,255,255,0.02);
+    color: var(--text);
+    padding:10px 12px;
+    outline:none;
+}
+
+input::placeholder{
+    color: rgba(255,255,255,0.35);
+}
+
+/* =========================
+   STRIKT GELIJKE ACTIE-KNOPPEN (DELETE & EDIT)
+========================= */
+.btn-action {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    
+    /* Dwingt exacte gelijke afmetingen af */
+    width: 90px !important;
+    height: 34px !important;
+    padding: 0 !important; 
+    
+    border: none !important;
+    outline: none !important;
+    border-radius: 999px !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    font-size: 11px !important;
+    color: white !important;
+    background: linear-gradient(90deg, var(--track-blue), var(--track-purple)) !important;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25) !important;
+    transition: all 0.2s ease !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+    cursor: pointer !important;
+}
+
+.btn-action:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4) !important;
+}
+
+/* Algemene fallback voor overige buttons/links (zoals 'Toepassen' en 'Reset') */
+button, .btn-reset, a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 16px;
+    border: none;
+    outline: none;
+    border-radius: 999px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 12px;
+    color: white;
+    background: linear-gradient(90deg, var(--track-blue), var(--track-purple));
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
+    transition: all 0.2s ease;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+button:hover, .btn-reset:hover, a:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(124, 58, 237, 0.4);
+    text-decoration: none;
+}
+
+/* =========================
+   FILTER BAR (DASHBOARD)
+========================= */
+.filter-form{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+.filter-form label{
+    font-size:12px;
+    color: var(--muted);
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+
+/* =========================
+   TABLE (TRACK LANES STYLE)
+========================= */
+.results{
+    width:100%;
+    border-collapse:separate;
+    border-spacing:0 10px;
+}
+
+.results th{
+    text-align:left;
+    font-size:11px;
+    color:rgba(255,255,255,0.6);
+    text-transform:uppercase;
+    letter-spacing:1px;
+    padding:10px;
+}
+
+.results td{
+    padding:14px 12px;
+    background: rgba(255,255,255,0.02);
+    border-left: 3px solid transparent;
+}
+
+/* Zorgt dat de twee knoppen strak gecentreerd naast elkaar staan */
+.results td.action-cell, .results td:last-child {
+    display: flex !important;
+    gap: 8px !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+}
+
+/* elke rij = “lane” */
+.results tbody tr{
+    transition: all 0.2s ease;
+}
+
+.results tbody tr:hover{
+    transform: scale(1.01);
+    background: rgba(14,165,233,0.08);
+    border-left: 3px solid var(--track-blue);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+}
+
+/* =========================
+   WIND BADGES (ATLETIEK STYLE)
+========================= */
+.wind-badge{
+    display:inline-block;
+    padding:4px 10px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:800;
+}
+
+.wind-good{
+    background: rgba(34,197,94,0.15);
+    color: var(--good);
+    border:1px solid rgba(34,197,94,0.3);
+}
+
+.wind-bad{
+    background: rgba(239,68,68,0.15);
+    color: var(--bad);
+    border:1px solid rgba(239,68,68,0.3);
+}
+
+/* =========================
+   NAV MENU (ONDERKANT PAGINA)
+========================= */
+.main-menu a{
+    display:inline-block;
+    padding:8px 12px;
+    border-radius:14px;
+    background: rgba(255,255,255,0.02);
+    box-shadow: none !important;
+}
+
+.main-menu a:hover{
+    background: rgba(14,165,233,0.1);
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* =========================
+   WARNING (RESULT BADGE)
+========================= */
+.warning-text{
+    color: var(--bad);
+    font-weight:700;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width:720px){
+    .filter-form{
+        flex-direction:column;
+        align-items:stretch;
+    }
+    button, .btn-reset{
+        width:100%;
+    }
+}

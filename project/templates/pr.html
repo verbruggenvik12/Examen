@@ -1,10 +1,79 @@
-<h1>Beste prestaties</h1>
+<!doctype html>
+<html lang="nl">
+<!-- Pagina om PR's te bekijken en te zoeken -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>PR zoeken</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+    <h1>PR zoeken</h1>
 
-<ul>
-{% for p in prs %}
-    <li>{{ p.discipline }} → {{ p.best }}</li>
-{% endfor %}
-</ul>
+    <!-- Zoekformulier voor PR op naam -->
+    <form method="post" class="search-form">
+        <input name="name" placeholder="Naam gebruiker">
+        <button type="submit">Zoek</button>
+    </form>
 
-<a href="/">Terug</a>
-``
+    <hr class="divider">
+
+    <div class="columns">
+
+        <div class="column">
+            <h2>Mijn PR</h2>
+
+            {% if my_results %}
+            <table class="results">
+            <thead>
+            <tr>
+                <th>Discipline</th>
+                <th>Beste prestatie</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for r in my_results %}
+            <tr>
+                <td>{{ r.discipline }}</td>
+                <td>{{ r.best }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+            </table>
+            {% else %}
+            <p class="muted">Geen persoonlijke PR beschikbaar</p>
+            {% endif %}
+        </div>
+
+        <div class="column">
+            <h2>Gezochte gebruiker</h2>
+
+            {% if search_results %}
+            <table class="results">
+            <thead>
+            <tr>
+                <th>Discipline</th>
+                <th>Beste prestatie</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for r in search_results %}
+            <tr>
+                <td>{{ r.discipline }}</td>
+                <td>{{ r.best }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+            </table>
+            {% else %}
+            <p class="muted">Geen gebruiker gezocht</p>
+            {% endif %}
+        </div>
+
+    </div>
+    <a class="back" href="{% if is_admin %}/admin{% else %}/{% endif %}">Terug</a><br>
+    <a href="/performances">Home</a>
+</div>
+</body>
+</html>
