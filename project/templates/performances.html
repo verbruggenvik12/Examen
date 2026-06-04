@@ -1,39 +1,138 @@
 <!doctype html>
 <html lang="nl">
+
+<!-- 
+    Pagina: "Mijn prestaties"
+
+    Dit is een overzichtspagina waar een gebruiker
+    al zijn/haar sportprestaties kan bekijken.
+
+    Hier kan ook gefilterd en gesorteerd worden.
+-->
 <head>
+
+    <!-- Tekencodering voor correcte weergave van speciale tekens -->
     <meta charset="utf-8">
+
+    <!-- Zorgt voor correcte weergave op mobiele toestellen -->
     <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <!-- Titel zichtbaar in browser-tab -->
     <title>Mijn prestaties</title>
+
+    <!-- CSS-bestand laden via Flask static map -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
 </head>
+
 <body>
+
+<!-- 
+    Container voor volledige pagina-inhoud.
+    Wordt gebruikt voor layout (centreren, breedte, padding, enz.)
+-->
 <div class="container">
 
+<!-- Hoofdtitel van de pagina -->
 <h1>Mijn prestaties</h1>
 
+<!-- ================= FILTERFORMULIER ================= -->
+
+<!-- 
+    Formulier waarmee gebruiker prestaties kan filteren en sorteren.
+
+    method="get"
+    -> parameters worden in URL gezet (bv. ?discipline=100m&sort=fastest)
+
+    action="/performances"
+    -> stuurt verzoek naar dezelfde overzichtspagina
+-->
 <form method="get" action="/performances" class="filter-form">
-    <label for="discipline">Discipline</label>
+
+    <!-- ================= DISCIPLINE FILTER ================= -->
+
+    <!-- Label voor toegankelijkheid -->
+    <label for="discipline">
+        Discipline
+    </label>
+
+    <!-- Dropdown om discipline te filteren -->
     <select id="discipline" name="discipline">
-        <option value="">Alle disciplines</option>
+
+        <!-- Optie om alle disciplines te tonen -->
+        <option value="">
+            Alle disciplines
+        </option>
+
+        <!-- 
+            Dynamische lijst van disciplines via Jinja.
+            selected_discipline bepaalt welke optie actief is.
+        -->
         {% for d in disciplines %}
-            <option value="{{ d }}" {% if d == selected_discipline %}selected{% endif %}>{{ d }}</option>
+
+            <option
+                value="{{ d }}"
+                {% if d == selected_discipline %}selected{% endif %}
+            >
+                {{ d }}
+            </option>
+
         {% endfor %}
+
     </select>
 
-    <label for="sort">Sorteren op</label>
+    <!-- ================= SORTERING ================= -->
+
+    <label for="sort">
+        Sorteren op
+    </label>
+
     <select id="sort" name="sort">
-        <option value="" {% if not selected_sort %}selected{% endif %}>Standaard</option>
-        <option value="fastest" {% if selected_sort == "fastest" %}selected{% endif %}>Snelste tijd</option>
-        <option value="slowest" {% if selected_sort == "slowest" %}selected{% endif %}>Traagste tijd</option>
-        <option value="recent" {% if selected_sort == "recent" %}selected{% endif %}>Recentste datum</option>
-        <option value="oldest" {% if selected_sort == "oldest" %}selected{% endif %}>Langst geleden</option>
+
+        <!-- Standaard sortering -->
+        <option value="" {% if not selected_sort %}selected{% endif %}>
+            Standaard
+        </option>
+
+        <!-- Snelste prestaties eerst -->
+        <option value="fastest" {% if selected_sort == "fastest" %}selected{% endif %}>
+            Snelste tijd
+        </option>
+
+        <!-- Traagste prestaties eerst -->
+        <option value="slowest" {% if selected_sort == "slowest" %}selected{% endif %}>
+            Traagste tijd
+        </option>
+
+        <!-- Meest recente eerst -->
+        <option value="recent" {% if selected_sort == "recent" %}selected{% endif %}>
+            Recentste datum
+        </option>
+
+        <!-- Oudste eerst -->
+        <option value="oldest" {% if selected_sort == "oldest" %}selected{% endif %}>
+            Langst geleden
+        </option>
+
     </select>
 
-    <button type="submit">Toepassen</button>
-    <a href="/performances" class="btn-reset">Reset</a>
+    <!-- Knop om filter/sortering toe te passen -->
+    <button type="submit">
+        Toepassen
+    </button>
+
+    <!-- Reset link: verwijdert filters door pagina opnieuw te laden -->
+    <a href="/performances" class="btn-reset">
+        Reset
+    </a>
+
 </form>
 
+<!-- ================= RESULTATENTABEL ================= -->
+
 <table class="results">
+
+    <!-- Tabelkop -->
     <thead>
         <tr>
             <th>Naam</th>
@@ -44,43 +143,106 @@
             <th>Acties</th>
         </tr>
     </thead>
+
+    <!-- Tabelinhoud -->
     <tbody>
+
+        <!-- 
+            Jinja-loop:
+            toont elke prestatie uit de database
+        -->
         {% for p in performances %}
+
         <tr>
+
+            <!-- Naam van de atleet -->
             <td>{{ p.name }}</td>
+
+            <!-- Discipline (bv. 100m, 200m, verspringen) -->
             <td>{{ p.discipline }}</td>
+
+            <!-- Resultaat (tijd, afstand, etc.) -->
             <td>{{ p.result }}</td>
 
+            <!-- ================= WINDINFORMATIE ================= -->
             <td>
+
+                <!-- Alleen tonen als wind bestaat -->
                 {% if p.wind_speed %}
+
+                    <!-- Controle of wind ongeldig is -->
                     {% if p.invalid_wind %}
-                        <span style="color:#f87171">{{ p.wind_direction }} {{ p.wind_speed }} m/s </span>
+
+                        <!-- Rode waarschuwing bij te sterke gunstige wind -->
+                        <span style="color:#f87171">
+                            {{ p.wind_direction }}
+                            {{ p.wind_speed }} m/s
+                        </span>
+
                     {% else %}
-                        {{ p.wind_direction }} {{ p.wind_speed }} m/s
+
+                        <!-- Normale weergave van wind -->
+                        {{ p.wind_direction }}
+                        {{ p.wind_speed }} m/s
+
                     {% endif %}
+
                 {% else %}
-                    - 
+
+                    <!-- Geen windgegevens beschikbaar -->
+                    -
+
                 {% endif %}
+
             </td>
+
+            <!-- Datum geformatteerd via custom filter -->
             <td>{{ p.date | format_date }}</td>
+
+            <!-- ================= ACTIES ================= -->
             <td class="action-cell">
+
+                <!-- Verwijderformulier -->
                 <form action="/delete" method="post" style="margin:0;">
+
+                    <!-- ID van prestatie om juiste record te verwijderen -->
                     <input type="hidden" name="id" value="{{ p.id }}">
-                    <button type="submit" class="btn-action btn-delete">Delete</button>
+
+                    <!-- Verwijderknop -->
+                    <button type="submit" class="btn-action btn-delete">
+                        Delete
+                    </button>
+
                 </form>
+
             </td>
+
         </tr>
+
         {% endfor %}
+
     </tbody>
+
 </table>
 
 <br>
+
+<!-- ================= NAVIGATIEMENU ================= -->
+
 <ul class="main-menu" style="list-style: none; padding: 0; display: flex; gap: 10px;">
+
+    <!-- Link naar PR-overzicht -->
     <li><a href="/pr">Bekijk PR</a></li>
+
+    <!-- Terug naar startpagina -->
     <li><a href="/">Terug</a></li>
+
+    <!-- Uitloggen -->
     <li><a href="/logout">Logout</a></li>
+
 </ul>
 
 </div>
+
 </body>
 </html>

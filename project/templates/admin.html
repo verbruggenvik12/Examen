@@ -1,55 +1,173 @@
 <!doctype html>
 <html lang="nl">
-<!-- Trainerdashboard met overzicht van alle prestaties -->
+<!-- 
+    Dit is de HTML-pagina voor het trainerdashboard.
+    Hier krijgt een trainer een overzicht van alle prestaties
+    van gebruikers en kan hij/zij prestaties beheren.
+-->
+
 <head>
+    <!-- Tekenset instellen zodat speciale tekens correct worden weergegeven -->
     <meta charset="utf-8">
+
+    <!-- Zorgt ervoor dat de pagina correct schaalt op mobiele apparaten -->
     <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <!-- Titel die zichtbaar wordt in het browsertabblad -->
     <title>Trainer dashboard</title>
+
+    <!-- 
+        Koppeling naar extern CSS-bestand.
+        Flask gebruikt url_for() om automatisch het juiste pad
+        naar de stylesheet op te halen uit de static-map.
+    -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
+
+<!-- 
+    Container-div om alle inhoud netjes te groeperen.
+    Vaak gebruikt voor opmaak zoals breedte, marges, centreren, enz.
+-->
 <div class="container">
 
+<!-- Hoofdtitel van het dashboard -->
 <h1>Trainer dashboard</h1>
 
-<!-- Tabel met prestaties en acties voor de trainer -->
+<!-- 
+    Tabel waarin alle prestaties worden weergegeven.
+    Klasse "results" wordt waarschijnlijk gebruikt voor CSS-opmaak.
+-->
 <table class="results">
+
+<!-- Eerste rij van de tabel bevat kolomtitels -->
 <tr>
+    <!-- Naam van gebruiker -->
     <th>Gebruiker</th>
+
+    <!-- Sportdiscipline -->
     <th>Discipline</th>
+
+    <!-- Prestatie/resultaat -->
     <th>Resultaat</th>
+
+    <!-- Windsnelheid en richting -->
     <th>Wind</th>
+
+    <!-- Datum van prestatie -->
     <th>Datum</th>
+
+    <!-- Acties zoals verwijderen of aanpassen -->
     <th>Acties</th>
 </tr>
 
+<!-- 
+    Jinja-for-loop:
+    Loopt door alle prestaties heen die vanuit Flask
+    worden doorgestuurd naar deze template.
+-->
 {% for p in performances %}
+
 <tr>
+
+    <!-- Toon gebruikersnaam -->
     <td>{{ p.username }}</td>
+
+    <!-- Toon discipline -->
     <td>{{ p.discipline }}</td>
-    <td>{% if p.invalid_wind %}<span style="color:#f87171">{{ p.result }} </span>{% else %}{{ p.result }}{% endif %}</td>
-    <td>{{ p.wind_direction or '' }} {{ p.wind_speed or '-' }}</td>
+
+    <!-- 
+        Controle op ongeldige windwaarden.
+        Indien invalid_wind waar is:
+        - resultaat wordt rood weergegeven
+        Anders:
+        - normaal resultaat tonen
+    -->
+    <td>
+        {% if p.invalid_wind %}
+            <span style="color:#f87171">
+                {{ p.result }}
+            </span>
+        {% else %}
+            {{ p.result }}
+        {% endif %}
+    </td>
+
+    <!-- 
+        Windinformatie tonen.
+        "or ''" = toon lege tekst als geen richting bestaat
+        "or '-'" = toon streepje als windsnelheid ontbreekt
+    -->
+    <td>
+        {{ p.wind_direction or '' }}
+        {{ p.wind_speed or '-' }}
+    </td>
+
+    <!-- 
+        Datum formatteren met een custom filter.
+        format_date wordt waarschijnlijk in Flask gedefinieerd.
+    -->
     <td>{{ p.date | format_date }}</td>
 
+    <!-- Cel met acties -->
     <td>
-        <!--  DELETE -->
+
+        <!-- ================= DELETE ================= -->
+
+        <!-- 
+            Formulier voor verwijderen van een prestatie.
+            POST wordt gebruikt omdat gegevens worden aangepast/verwijderd.
+        -->
         <form action="/delete" method="post" style="display:inline;">
+
+            <!-- 
+                Verborgen inputveld.
+                Stuurt het ID van de prestatie mee zodat
+                de backend weet welke rij verwijderd moet worden.
+            -->
             <input type="hidden" name="id" value="{{ p.id }}">
+
+            <!-- Verwijderknop -->
             <button type="submit">Delete</button>
         </form>
 
-        <!--  EDIT -->
-        <a href="/edit/{{ p.id }}" style="margin-left:10px;">Edit</a>
+        <!-- ================= EDIT ================= -->
+
+        <!-- 
+            Link naar editpagina.
+            p.id wordt meegegeven zodat juiste prestatie
+            kan worden aangepast.
+        -->
+        <a href="/edit/{{ p.id }}" style="margin-left:10px;">
+            Edit
+        </a>
+
     </td>
+
 </tr>
+
+<!-- Einde van de for-loop -->
 {% endfor %}
+
 </table>
 
 <br>
-<a href="/">Terug</a> <br>
-<a href="/pr">Bekijk PR</a> <br>
+
+<!-- Link terug naar homepage -->
+<a href="/">Terug</a>
+
+<br>
+
+<!-- Link naar overzicht van persoonlijke records -->
+<a href="/pr">Bekijk PR</a>
+
+<br>
+
+<!-- Uitloggen -->
 <a href="/logout">Logout</a>
 
 </div>
+
 </body>
 </html>

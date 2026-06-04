@@ -1,24 +1,102 @@
 <!doctype html>
 <html lang="nl">
-<!-- Registratiepagina voor nieuwe gebruikers -->
+
+<!-- 
+    Registratiepagina voor nieuwe gebruikers.
+
+    Gebruikers kunnen hier een nieuw account aanmaken
+    door een gebruikersnaam en wachtwoord in te vullen.
+-->
 <head>
+
+    <!-- Tekencodering zodat speciale tekens correct worden weergegeven -->
     <meta charset="utf-8">
+
+    <!-- Maakt de pagina responsive op mobiele apparaten -->
     <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <!-- Titel in het browser-tabblad -->
     <title>Register</title>
+
+    <!-- CSS-bestand laden via Flask static map -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
 </head>
+
 <body>
+
+<!-- 
+    Container die de inhoud groepeert.
+
+    Wordt gebruikt voor:
+    - layout (centreren)
+    - consistente styling
+    - maximale breedte en padding
+-->
 <div class="container">
 
-<h1>Register</h1>
+    <!-- Hoofdtitel van de pagina -->
+    <h1>Register</h1>
 
-<!-- Formulier voor aanmaken van een nieuwe account -->
-<form method="post" class="form-card">
-    <input name="username"><br><br>
-    <input type="password" name="password"><br><br>
-    <button>Register</button>
-</form>
+    <!-- ================= REGISTRATIEFORMULIER ================= -->
+
+    <!-- 
+        Formulier om een nieuw account aan te maken.
+
+        method="post"
+        -> gegevens worden veilig via request body doorgestuurd
+
+        action ontbreekt:
+        -> formulier wordt verstuurd naar dezelfde route
+           die deze pagina toont
+    -->
+    <form method="post" class="form-card">
+
+        <!-- ================= USERNAME ================= -->
+
+        <!-- 
+            Inputveld voor gebruikersnaam.
+
+            name="username"
+            -> wordt gebruikt in backend om waarde op te halen
+
+            Geen placeholder aanwezig, dus lege invoer start hier.
+        -->
+        <input name="username">
+
+        <br><br>
+
+        <!-- ================= PASSWORD ================= -->
+
+        <!-- 
+            Wachtwoordveld.
+
+            type="password"
+            -> ingevoerde tekst wordt verborgen (••••••)
+        -->
+        <input
+            type="password"
+            name="password"
+        >
+
+        <br><br>
+
+        <!-- ================= REGISTREERKNOP ================= -->
+
+        <!-- 
+            Knop om het registratieformulier te verzenden.
+
+            Stuurt username + password naar backend
+            waar het account wordt aangemaakt.
+        -->
+        <button>
+            Register
+        </button>
+
+    </form>
 
 </div>
+
 </body>
+
 </html>

@@ -1,97 +1,426 @@
 <!doctype html>
 <html lang="nl">
-<!-- Pagina om een nieuwe prestatie toe te voegen -->
+
+<!-- 
+    Deze pagina dient voor het toevoegen van nieuwe prestaties.
+    Gebruikers kunnen hier naam, discipline, resultaat,
+    datum en eventueel windgegevens invoeren.
+-->
+
 <head>
+
+    <!-- 
+        UTF-8 tekenset.
+        Zorgt ervoor dat speciale tekens correct werken.
+    -->
     <meta charset="utf-8">
+
+    <!-- 
+        Maakt de pagina responsive.
+        Hierdoor werkt de layout beter op mobiele apparaten.
+    -->
     <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <!-- Titel zichtbaar in browser-tab -->
     <title>Nieuwe prestatie</title>
+
+    <!-- 
+        CSS-bestand laden vanuit Flask static-map.
+        url_for() genereert automatisch het juiste pad.
+    -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
 </head>
+
 <body>
+
+<!-- 
+    Algemene container voor de inhoud.
+    Vaak gebruikt voor centreren en consistente layout.
+-->
 <div class="container">
 
+<!-- Titel bovenaan de pagina -->
 <h1>Nieuwe prestatie</h1>
 
-<!-- Formulier voor het toevoegen van een nieuwe prestatie -->
+<!-- 
+    Formulier voor het opslaan van een nieuwe prestatie.
+
+    method="post"
+    -> gegevens worden verzonden naar backend
+
+    action="/add"
+    -> verstuurt formulier naar route /add
+-->
 <form method="post" action="/add" class="form-card">
-    <input name="name" placeholder="Naam"><br><br>
 
+    <!-- ================= Naam ================= -->
+
+    <!-- 
+        Naam van gebruiker/atleet invoeren.
+        Placeholder toont voorbeeldtekst.
+    -->
+    <input name="name" placeholder="Naam">
+
+    <br><br>
+
+    <!-- ================= Discipline ================= -->
+
+    <!-- 
+        Dropdownmenu voor disciplines.
+
+        id wordt gebruikt in JavaScript.
+        name wordt gebruikt om data door te sturen.
+    -->
     <select id="discipline" name="discipline">
+
+        <!-- 
+            Jinja-loop maakt automatisch opties
+            voor alle disciplines.
+        -->
         {% for d in disciplines %}
-        <option value="{{ d }}">{{ d }}</option>
+
+        <option value="{{ d }}">
+            {{ d }}
+        </option>
+
         {% endfor %}
-    </select><br><br>
 
+    </select>
+
+    <br><br>
+
+    <!-- ================= Windvelden ================= -->
+
+    <!-- 
+        Windgegevens worden standaard verborgen.
+
+        JavaScript toont deze alleen
+        bij sprintdisciplines.
+    -->
     <div id="wind-fields" style="display:none;">
-        <label for="wind_speed">Windmeting (m/s) <span class="example">(vb: 3,2)</span></label><br>
-        <input id="wind_speed" name="wind_speed" placeholder="Windmeting"><br><br>
 
-        <label for="wind_direction">Windrichting</label><br>
-        <select id="wind_direction" name="wind_direction">
-            <option value="meewind">Meewind</option>
-            <option value="tegenwind">Tegenwind</option>
-        </select><br><br>
+        <!-- Label voor windsnelheid -->
+        <label for="wind_speed">
+
+            Windmeting (m/s)
+
+            <!-- Voorbeeldwaarde -->
+            <span class="example">
+                (vb: 3,2)
+            </span>
+
+        </label>
+
+        <br>
+
+        <!-- 
+            Input voor windsnelheid.
+        -->
+        <input
+            id="wind_speed"
+            name="wind_speed"
+            placeholder="Windmeting"
+        >
+
+        <br><br>
+
+        <!-- Label voor richting -->
+        <label for="wind_direction">
+            Windrichting
+        </label>
+
+        <br>
+
+        <!-- Dropdown voor richting -->
+        <select
+            id="wind_direction"
+            name="wind_direction"
+        >
+
+            <option value="meewind">
+                Meewind
+            </option>
+
+            <option value="tegenwind">
+                Tegenwind
+            </option>
+
+        </select>
+
+        <br><br>
+
     </div>
 
-    <input name="result" placeholder="Resultaat"><br><br>
-    <input type="date" name="date" placeholder="Datum"><br><br>
+    <!-- ================= Resultaat ================= -->
 
-    <button>Opslaan</button>
+    <input
+        name="result"
+        placeholder="Resultaat"
+    >
+
+    <br><br>
+
+    <!-- ================= Datum ================= -->
+
+    <input
+        type="date"
+        name="date"
+        placeholder="Datum"
+    >
+
+    <br><br>
+
+    <!-- Formulier verzenden -->
+    <button>
+        Opslaan
+    </button>
+
 </form>
 
+<!-- Extra witruimte -->
 </br>
+
+<!-- ================= Navigatiemenu ================= -->
+
 <nav class="main-menu">
+
     <ul>
-        <li><a href="/performances">Bekijk prestaties</a></li>
-        <li><a href="/pr">Bekijk PR</a></li>
-        <li><a href="/logout">Logout</a></li>
+
+        <!-- Overzicht prestaties -->
+        <li>
+            <a href="/performances">
+                Bekijk prestaties
+            </a>
+        </li>
+
+        <!-- Persoonlijke records -->
+        <li>
+            <a href="/pr">
+                Bekijk PR
+            </a>
+        </li>
+
+        <!-- Uitloggen -->
+        <li>
+            <a href="/logout">
+                Logout
+            </a>
+        </li>
+
     </ul>
+
 </nav>
 
 </div>
+
+<!-- ================= JavaScript ================= -->
+
 <script>
-    const disciplineSelect = document.getElementById('discipline');
-    const windFields = document.getElementById('wind-fields');
 
-    const windInput = document.getElementById('wind_speed');
-    const windLabel = document.querySelector('label[for="wind_speed"]');
+    /*
+        Referentie naar discipline dropdown.
 
+        Nodig om veranderingen op te volgen.
+    */
+    const disciplineSelect =
+        document.getElementById('discipline');
+
+    /*
+        Container met windvelden.
+    */
+    const windFields =
+        document.getElementById('wind-fields');
+
+    /*
+        Windsnelheid inputveld.
+    */
+    const windInput =
+        document.getElementById('wind_speed');
+
+    /*
+        Label van windinput.
+
+        Hiermee kunnen waarschuwingstijlen
+        toegevoegd/verwijderd worden.
+    */
+    const windLabel =
+        document.querySelector(
+            'label[for="wind_speed"]'
+        );
+
+    /*
+        Controleert wanneer windvelden
+        zichtbaar moeten zijn.
+
+        Alleen:
+        - 100m
+        - 200m
+
+        gebruiken windmetingen.
+    */
     function toggleWindFields() {
-        const value = disciplineSelect.value;
-        if (value === '100m' || value === '200m') {
-            windFields.style.display = 'block';
+
+        const value =
+            disciplineSelect.value;
+
+        if (
+            value === '100m' ||
+            value === '200m'
+        ) {
+
+            /*
+                Toon windvelden
+            */
+            windFields.style.display =
+                'block';
+
         } else {
-            windFields.style.display = 'none';
-            windInput.value = '';
-            document.getElementById('wind_direction').value = 'meewind';
+
+            /*
+                Verberg windvelden
+            */
+            windFields.style.display =
+                'none';
+
+            /*
+                Reset windsnelheid
+            */
+            windInput.value =
+                '';
+
+            /*
+                Zet standaardrichting terug
+            */
+            document.getElementById(
+                'wind_direction'
+            ).value =
+                'meewind';
+
+            /*
+                Waarschuwingen opnieuw controleren
+            */
             updateWindWarning();
         }
     }
 
-function updateWindWarning() {
-    // 1. Haal de windwaarde op en zet komma's om naar punten
-    const rawValue = windInput.value.replace(',', '.').trim();
-    const windSpeed = parseFloat(rawValue);
-    
-    // 2. Haal de windrichting op en zet deze direct om naar KLEINE LETTERS (.toLowerCase())
-    const windDirection = windDirectionSelect.value.toLowerCase();
+    /*
+        Controlefunctie voor windwaarden.
 
-    // 3. Logica: Alleen rood ALS het exact 'meewind' is EN de snelheid >= 2.0
-    const isWarning = (windDirection === 'meewind') && (!isNaN(windSpeed) && windSpeed >= 2.0);
+        Doel:
+        Alleen waarschuwen wanneer:
 
-    if (isWarning) {
-        windLabel.classList.add('warning-text');
-        windInput.classList.add('warning-input');
-    } else {
-        windLabel.classList.remove('warning-text');
-        windInput.classList.remove('warning-input');
+        - richting = meewind
+        - windsnelheid >= 2.0 m/s
+    */
+    function updateWindWarning() {
+
+        /*
+            Stap 1:
+            Komma vervangen door punt.
+
+            Trim verwijdert extra spaties.
+        */
+        const rawValue =
+            windInput.value
+                .replace(',', '.')
+                .trim();
+
+        /*
+            Stap 2:
+            Omzetten naar numerieke waarde.
+        */
+        const windSpeed =
+            parseFloat(rawValue);
+
+        /*
+            Stap 3:
+            Windrichting ophalen.
+
+            toLowerCase zorgt ervoor
+            dat hoofdletters geen probleem vormen.
+        */
+        const windDirection =
+            windDirectionSelect.value
+                .toLowerCase();
+
+        /*
+            Controle op waarschuwing.
+
+            TRUE wanneer:
+            - meewind
+            - >= 2.0
+        */
+        const isWarning =
+
+            (windDirection === 'meewind')
+
+            &&
+
+            (
+                !isNaN(windSpeed)
+                &&
+                windSpeed >= 2.0
+            );
+
+        if (isWarning) {
+
+            /*
+                Voeg rode waarschuwing toe.
+            */
+            windLabel.classList.add(
+                'warning-text'
+            );
+
+            windInput.classList.add(
+                'warning-input'
+            );
+
+        } else {
+
+            /*
+                Verwijder waarschuwing.
+            */
+            windLabel.classList.remove(
+                'warning-text'
+            );
+
+            windInput.classList.remove(
+                'warning-input'
+            );
+        }
     }
-}
 
-    disciplineSelect.addEventListener('change', toggleWindFields);
-    windInput.addEventListener('input', updateWindWarning);
+    /*
+        Bij veranderen discipline:
+        controleer zichtbaarheid.
+    */
+    disciplineSelect.addEventListener(
+        'change',
+        toggleWindFields
+    );
+
+    /*
+        Bij typen in windveld:
+        update waarschuwing.
+    */
+    windInput.addEventListener(
+        'input',
+        updateWindWarning
+    );
+
+    /*
+        Direct uitvoeren bij laden pagina.
+
+        Zorgt ervoor dat alles correct staat
+        vanaf het eerste moment.
+    */
     toggleWindFields();
+
     updateWindWarning();
+
 </script>
+
 </body>
+
 </html>

@@ -1,8 +1,10 @@
 /* =========================
    FONTS & THEME
 ========================= */
+/*letterltype van Google Fonts importeren*/
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
 
+/*kleuren een tag geven zodat ze makkelijk te gebruiken zijn in de rest van de CSS*/
 :root{
     --track-red: #ef4444;
     --track-orange: #f97316;

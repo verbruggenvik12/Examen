@@ -1,19 +1,93 @@
 <!doctype html>
 <html lang="nl">
-<!-- Foutpagina voor het weergeven van een foutmelding -->
+
+<!-- 
+    Deze pagina wordt gebruikt als foutpagina.
+    Wanneer ergens in de applicatie een fout optreedt,
+    kan deze template worden geladen om een duidelijke
+    foutmelding aan de gebruiker te tonen.
+-->
+
 <head>
+
+    <!-- 
+        Tekenset UTF-8:
+        zorgt ervoor dat speciale tekens correct weergegeven worden,
+        zoals é, ë, €, enzovoort.
+    -->
     <meta charset="utf-8">
+
+    <!-- 
+        Zorgt ervoor dat de pagina correct schaalt
+        op smartphones, tablets en kleinere schermen.
+    -->
     <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <!-- 
+        Titel van de pagina.
+        Verschijnt bovenaan in het browsertabblad.
+    -->
     <title>Fout</title>
+
+    <!-- 
+        Verwijzing naar extern CSS-bestand.
+
+        url_for() is een Flask-functie die automatisch
+        het juiste pad naar bestanden in de static-map genereert.
+
+        Hierdoor blijft de link correct werken,
+        zelfs wanneer routes veranderen.
+    -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
 </head>
+
 <body>
+
+<!-- 
+    Container-div.
+
+    Wordt meestal gebruikt voor:
+    - centreren van inhoud
+    - maximale breedte instellen
+    - padding/marges toepassen
+    - uniforme layout behouden
+-->
 <div class="container">
 
-<h1>Fout</h1>
-<p>{{ message }}</p>
-<a href="/">Terug</a>
+    <!-- 
+        Grote titel zodat onmiddellijk duidelijk is
+        dat de gebruiker op een foutpagina zit.
+    -->
+    <h1>Fout</h1>
+
+    <!-- 
+        Hier wordt de foutmelding weergegeven.
+
+        {{ message }} is een Jinja-template variabele.
+
+        Flask stuurt deze variabele door vanuit de backend,
+        bijvoorbeeld:
+
+        return render_template(
+            "error.html",
+            message="Ongeldige login"
+        )
+
+        Daardoor kan dezelfde foutpagina
+        verschillende foutmeldingen tonen.
+    -->
+    <p>{{ message }}</p>
+
+    <!-- Link terug naar de hoofdpagina.
+
+        Hiermee kan de gebruiker terug navigeren
+        nadat de foutmelding werd bekeken.
+    -->
+    <a href="/">Terug</a>
 
 </div>
+
 </body>
+
 </html>

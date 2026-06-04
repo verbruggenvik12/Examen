@@ -1,79 +1,230 @@
 <!doctype html>
 <html lang="nl">
-<!-- Pagina om PR's te bekijken en te zoeken -->
+
+<!-- 
+    Pagina: PR zoeken (Personal Records)
+
+    Deze pagina laat gebruikers toe om persoonlijke records (PR’s)
+    op te zoeken en te vergelijken.
+
+    Er zijn twee kolommen:
+    - eigen PR’s
+    - gezochte gebruiker zijn PR’s
+-->
 <head>
+
+    <!-- Tekencodering voor correcte weergave van speciale tekens -->
     <meta charset="utf-8">
+
+    <!-- Responsive instellingen voor mobiele weergave -->
     <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <!-- Titel zichtbaar in browser-tab -->
     <title>PR zoeken</title>
+
+    <!-- CSS-bestand laden via Flask static map -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
 </head>
+
 <body>
+
+<!-- 
+    Container voor volledige inhoud van de pagina.
+    Zorgt voor consistente layout en centrering.
+-->
 <div class="container">
+
+    <!-- Hoofdtitel van de pagina -->
     <h1>PR zoeken</h1>
 
-    <!-- Zoekformulier voor PR op naam -->
+    <!-- ================= ZOEKFORMULIER ================= -->
+
+    <!-- 
+        Formulier om een gebruiker op te zoeken.
+
+        method="post"
+        -> gegevens worden naar backend gestuurd zonder in URL te verschijnen
+
+        Doel:
+        - naam ingeven
+        - PR’s van die gebruiker ophalen
+    -->
     <form method="post" class="search-form">
-        <input name="name" placeholder="Naam gebruiker">
-        <button type="submit">Zoek</button>
+
+        <!-- Inputveld voor gebruikersnaam -->
+        <input
+            name="name"
+            placeholder="Naam gebruiker"
+        >
+
+        <!-- Zoekknop -->
+        <button type="submit">
+            Zoek
+        </button>
+
     </form>
 
+    <!-- Horizontale lijn om secties visueel te scheiden -->
     <hr class="divider">
 
+    <!-- ================= TWEE KOLOMMEN ================= -->
+
+    <!-- 
+        Layout-container met twee kolommen:
+
+        - links: eigen PR’s
+        - rechts: gezochte gebruiker
+    -->
     <div class="columns">
 
+        <!-- ================= LINKER KOLOM ================= -->
+
         <div class="column">
+
+            <!-- Titel voor eigen PR -->
             <h2>Mijn PR</h2>
 
+            <!-- 
+                Jinja condition:
+
+                als my_results bestaat en niet leeg is:
+                -> toon tabel met PR's
+
+                anders:
+                -> toon melding "geen data"
+            -->
             {% if my_results %}
+
+            <!-- PR tabel -->
             <table class="results">
-            <thead>
-            <tr>
-                <th>Discipline</th>
-                <th>Beste prestatie</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for r in my_results %}
-            <tr>
-                <td>{{ r.discipline }}</td>
-                <td>{{ r.best }}</td>
-            </tr>
-            {% endfor %}
-            </tbody>
+
+                <!-- Tabelkop -->
+                <thead>
+                    <tr>
+                        <th>Discipline</th>
+                        <th>Beste prestatie</th>
+                    </tr>
+                </thead>
+
+                <!-- Tabelinhoud -->
+                <tbody>
+
+                    <!-- Loop door eigen PR-resultaten -->
+                    {% for r in my_results %}
+
+                    <tr>
+
+                        <!-- Discipline (bv. 100m, 200m) -->
+                        <td>{{ r.discipline }}</td>
+
+                        <!-- Beste prestatie voor die discipline -->
+                        <td>{{ r.best }}</td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
             </table>
+
             {% else %}
-            <p class="muted">Geen persoonlijke PR beschikbaar</p>
+
+            <!-- 
+                Fallback tekst wanneer geen PR’s beschikbaar zijn
+            -->
+            <p class="muted">
+                Geen persoonlijke PR beschikbaar
+            </p>
+
             {% endif %}
+
         </div>
 
+        <!-- ================= RECHTER KOLOM ================= -->
+
         <div class="column">
+
+            <!-- Titel voor gezochte gebruiker -->
             <h2>Gezochte gebruiker</h2>
 
+            <!-- 
+                Controle of er zoekresultaten zijn.
+                Deze komen van een andere gebruiker via search.
+            -->
             {% if search_results %}
+
             <table class="results">
-            <thead>
-            <tr>
-                <th>Discipline</th>
-                <th>Beste prestatie</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for r in search_results %}
-            <tr>
-                <td>{{ r.discipline }}</td>
-                <td>{{ r.best }}</td>
-            </tr>
-            {% endfor %}
-            </tbody>
+
+                <thead>
+                    <tr>
+                        <th>Discipline</th>
+                        <th>Beste prestatie</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <!-- Loop door gevonden PR’s -->
+                    {% for r in search_results %}
+
+                    <tr>
+
+                        <!-- Discipline -->
+                        <td>{{ r.discipline }}</td>
+
+                        <!-- Beste prestatie -->
+                        <td>{{ r.best }}</td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
             </table>
+
             {% else %}
-            <p class="muted">Geen gebruiker gezocht</p>
+
+            <!-- 
+                Fallback wanneer er geen gebruiker is opgezocht
+                of geen resultaten beschikbaar zijn
+            -->
+            <p class="muted">
+                Geen gebruiker gezocht
+            </p>
+
             {% endif %}
+
         </div>
 
     </div>
-    <a class="back" href="{% if is_admin %}/admin{% else %}/{% endif %}">Terug</a><br>
-    <a href="/performances">Home</a>
+
+    <!-- ================= NAVIGATIE ================= -->
+
+    <!-- 
+        Dynamische terugknop:
+
+        - als admin: ga naar /admin
+        - anders: ga naar home /
+    -->
+    <a
+        class="back"
+        href="{% if is_admin %}/admin{% else %}/{% endif %}"
+    >
+        Terug
+    </a>
+
+    <br>
+
+    <!-- Link naar overzicht van alle prestaties -->
+    <a href="/performances">
+        Home
+    </a>
+
 </div>
+
 </body>
+
 </html>

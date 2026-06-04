@@ -1,95 +1,363 @@
 <!doctype html>
 <html lang="nl">
-<!-- Pagina om een bestaande prestatie te bewerken -->
+
+<!-- 
+    Pagina voor het aanpassen van een bestaande prestatie.
+    Trainers of admins kunnen hier eerder ingevoerde prestaties wijzigen.
+-->
+
 <head>
+
+    <!-- Ondersteuning voor speciale tekens -->
     <meta charset="utf-8">
+
+    <!-- Zorgt ervoor dat de pagina goed schaalt op mobiele toestellen -->
     <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <!-- Titel zichtbaar in browser-tab -->
     <title>Prestatie aanpassen</title>
+
+    <!-- 
+        Verwijzing naar extern CSS-bestand.
+        Flask gebruikt url_for() om automatisch
+        het correcte pad naar de static map te genereren.
+    -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
 </head>
+
 <body>
+
+<!-- 
+    Algemene container voor opmaak.
+    Wordt meestal gebruikt voor breedte, padding en centrering.
+-->
 <div class="container">
 
+<!-- Titel bovenaan de pagina -->
 <h1>Prestatie aanpassen</h1>
 
-<!-- Formulier voor aanpassen van de gegevens van een prestatie -->
+<!-- 
+    Formulier voor het aanpassen van bestaande gegevens.
+    method="post" stuurt gewijzigde data naar de backend.
+-->
 <form method="post" class="form-card">
 
+<!-- ==================== Naam ==================== -->
+
 Naam:<br>
-<input name="name" value="{{ p.name }}"><br><br>
+
+<!-- 
+    Inputveld voor naam.
+    Wordt vooraf ingevuld met huidige waarde uit object p.
+-->
+<input name="name" value="{{ p.name }}">
+
+<br><br>
+
+<!-- ==================== Discipline ==================== -->
 
 Discipline:<br>
+
+<!-- 
+    Dropdownmenu voor disciplines.
+    Gebruikt gegevens uit lijst "disciplines".
+-->
 <select id="discipline" name="discipline">
+
+    <!-- 
+        Jinja-loop:
+        maakt automatisch opties aan voor elke discipline
+    -->
     {% for d in disciplines %}
+
+    <!-- 
+        Indien huidige discipline gelijk is aan opgeslagen discipline,
+        wordt deze optie automatisch geselecteerd.
+    -->
     <option value="{{ d }}" {% if d == p.discipline %}selected{% endif %}>
         {{ d }}
     </option>
+
     {% endfor %}
-</select><br><br>
 
+</select>
+
+<br><br>
+
+<!-- ==================== Windvelden ==================== -->
+
+<!-- 
+    Windinformatie wordt standaard verborgen.
+    JavaScript toont deze alleen voor sprintdisciplines.
+-->
 <div id="wind-fields" style="display:none;">
-    <label for="wind_speed">Windmeting (m/s) <span class="example">(vb: 3,2)</span></label><br>
-    <input id="wind_speed" name="wind_speed" placeholder="Windmeting" value="{{ p.wind_speed or '' }}"><br><br>
 
-    <label for="wind_direction">Windrichting</label><br>
+    <!-- Label voor windsnelheid -->
+    <label for="wind_speed">
+        Windmeting (m/s)
+        <span class="example">(vb: 3,2)</span>
+    </label>
+
+    <br>
+
+    <!-- 
+        Input voor windsnelheid.
+        Indien reeds een waarde bestaat wordt deze ingevuld.
+    -->
+    <input
+        id="wind_speed"
+        name="wind_speed"
+        placeholder="Windmeting"
+        value="{{ p.wind_speed or '' }}"
+    >
+
+    <br><br>
+
+    <!-- Label voor windrichting -->
+    <label for="wind_direction">
+        Windrichting
+    </label>
+
+    <br>
+
+    <!-- Dropdown voor richting -->
     <select id="wind_direction" name="wind_direction">
-        <option value="meewind" {% if p.wind_direction == 'meewind' %}selected{% endif %}>Meewind</option>
-        <option value="tegenwind" {% if p.wind_direction == 'tegenwind' %}selected{% endif %}>Tegenwind</option>
-    </select><br><br>
+
+        <!-- Meewind-optie -->
+        <option
+            value="meewind"
+            {% if p.wind_direction == 'meewind' %}selected{% endif %}
+        >
+            Meewind
+        </option>
+
+        <!-- Tegenwind-optie -->
+        <option
+            value="tegenwind"
+            {% if p.wind_direction == 'tegenwind' %}selected{% endif %}
+        >
+            Tegenwind
+        </option>
+
+    </select>
+
+    <br><br>
+
 </div>
 
+<!-- ==================== Resultaat ==================== -->
+
 Resultaat:<br>
-<input name="result" value="{{ p.result }}"><br><br>
+
+<!-- Bestaand resultaat automatisch invullen -->
+<input name="result" value="{{ p.result }}">
+
+<br><br>
+
+<!-- ==================== Datum ==================== -->
 
 Datum:<br>
-<input type="date" name="date" value="{{ p.date }}"><br><br>
 
-<button type="submit">Opslaan</button>
+<!-- 
+    Date-input krijgt bestaande datumwaarde mee.
+-->
+<input type="date" name="date" value="{{ p.date }}">
+
+<br><br>
+
+<!-- Formulier opslaan -->
+<button type="submit">
+    Opslaan
+</button>
 
 </form>
 
 <br>
-<a href="/admin">Terug</a>
+
+<!-- Terug naar admin dashboard -->
+<a href="/admin">
+    Terug
+</a>
 
 </div>
+
+<!-- ==================== JavaScript ==================== -->
+
 <script>
-    const editDiscipline = document.getElementById('discipline');
-    const editWindFields = document.getElementById('wind-fields');
 
-    const editWindInput = document.getElementById('wind_speed');
-    const editWindLabel = document.querySelector('label[for="wind_speed"]');
+    /*
+        Referentie naar discipline dropdown.
+        Nodig om veranderingen te detecteren.
+    */
+    const editDiscipline =
+        document.getElementById('discipline');
 
+    /*
+        Referentie naar volledige wind-sectie.
+    */
+    const editWindFields =
+        document.getElementById('wind-fields');
+
+    /*
+        Referentie naar inputveld windsnelheid.
+    */
+    const editWindInput =
+        document.getElementById('wind_speed');
+
+    /*
+        Referentie naar label van windinput.
+        Hiermee kunnen waarschuwingstijlen toegevoegd worden.
+    */
+    const editWindLabel =
+        document.querySelector('label[for="wind_speed"]');
+
+
+    /*
+        Functie die bepaalt of windvelden zichtbaar moeten zijn.
+
+        Alleen sprintdisciplines:
+        - 100m
+        - 200m
+
+        tonen windmetingen.
+    */
     function toggleEditWindFields() {
-        const value = editDiscipline.value;
-        if (value === '100m' || value === '200m') {
-            editWindFields.style.display = 'block';
+
+        const value =
+            editDiscipline.value;
+
+        if (
+            value === '100m' ||
+            value === '200m'
+        ) {
+
+            /*
+                Toon windvelden
+            */
+            editWindFields.style.display =
+                'block';
+
         } else {
-            editWindFields.style.display = 'none';
-            editWindInput.value = '';
-            document.getElementById('wind_direction').value = 'meewind';
+
+            /*
+                Verberg windvelden
+            */
+            editWindFields.style.display =
+                'none';
+
+            /*
+                Reset windsnelheid
+            */
+            editWindInput.value =
+                '';
+
+            /*
+                Zet standaardrichting terug
+            */
+            document.getElementById(
+                'wind_direction'
+            ).value =
+                'meewind';
+
+            /*
+                Hercontrole waarschuwing
+            */
             updateEditWindWarning();
         }
     }
 
+
+    /*
+        Controleert windsnelheid.
+
+        Indien >= 2.0 m/s:
+        -> waarschuwing tonen
+
+        Hiervoor worden CSS-klassen toegevoegd.
+    */
     function updateEditWindWarning() {
-        const rawValue = editWindInput.value.replace(',', '.').trim();
-        const speed = parseFloat(rawValue);
-        const isWarning = !isNaN(speed) && speed >= 2.0;
+
+        /*
+            Komma vervangen door punt.
+            Trim verwijdert spaties.
+        */
+        const rawValue =
+            editWindInput.value
+                .replace(',', '.')
+                .trim();
+
+        /*
+            Omzetten naar getal
+        */
+        const speed =
+            parseFloat(rawValue);
+
+        /*
+            Controle op grenswaarde
+        */
+        const isWarning =
+            !isNaN(speed) &&
+            speed >= 2.0;
 
         if (isWarning) {
-            editWindLabel.classList.add('warning-text');
-            editWindInput.classList.add('warning-input');
+
+            /*
+                Voeg waarschuwingstijlen toe
+            */
+            editWindLabel.classList.add(
+                'warning-text'
+            );
+
+            editWindInput.classList.add(
+                'warning-input'
+            );
+
         } else {
-            editWindLabel.classList.remove('warning-text');
-            editWindInput.classList.remove('warning-input');
+
+            /*
+                Verwijder waarschuwingstijlen
+            */
+            editWindLabel.classList.remove(
+                'warning-text'
+            );
+
+            editWindInput.classList.remove(
+                'warning-input'
+            );
         }
     }
 
-    editDiscipline.addEventListener('change', toggleEditWindFields);
-    editWindInput.addEventListener('input', updateEditWindWarning);
+
+    /*
+        Wanneer discipline verandert:
+        controleer zichtbaarheid windvelden
+    */
+    editDiscipline.addEventListener(
+        'change',
+        toggleEditWindFields
+    );
+
+    /*
+        Bij typen in windveld:
+        onmiddellijk waarschuwingen updaten
+    */
+    editWindInput.addEventListener(
+        'input',
+        updateEditWindWarning
+    );
+
+    /*
+        Direct uitvoeren bij laden van pagina
+        zodat bestaande gegevens correct worden weergegeven.
+    */
     toggleEditWindFields();
+
     updateEditWindWarning();
+
 </script>
+
 </div>
+
 </body>
 </html>

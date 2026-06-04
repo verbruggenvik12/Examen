@@ -1,27 +1,141 @@
 <!doctype html>
 <html lang="nl">
-<!-- Loginpagina voor gebruikers -->
+
+<!-- 
+    Dit is de loginpagina van de applicatie.
+
+    Gebruikers kunnen hier hun accountgegevens invoeren
+    om toegang te krijgen tot de applicatie.
+-->
+
 <head>
+
+    <!-- 
+        UTF-8 tekenset.
+
+        Zorgt ervoor dat speciale tekens
+        correct weergegeven worden.
+    -->
     <meta charset="utf-8">
+
+    <!-- 
+        Responsive viewport instellingen.
+
+        Hierdoor schaalt de pagina correct
+        op smartphones en tablets.
+    -->
     <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <!-- 
+        Titel van de pagina.
+
+        Wordt weergegeven in het browsertabblad.
+    -->
     <title>Login</title>
+
+    <!-- 
+        Extern CSS-bestand laden.
+
+        url_for() is een Flask-functie die automatisch
+        het correcte pad naar bestanden in /static maakt.
+    -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
 </head>
+
 <body>
+
+<!-- 
+    Container-div.
+
+    Gebruikt om alle inhoud te groeperen
+    en meestal gebruikt voor:
+
+    - centreren
+    - breedte beperken
+    - marges/padding toepassen
+-->
 <div class="container">
 
-<h1>Login</h1>
+    <!-- Titel zichtbaar bovenaan -->
+    <h1>Login</h1>
 
-<!-- Formulier voor gebruikersnaam en wachtwoord -->
-<form method="post" class="form-card">
-    <input name="username" placeholder="username"><br><br>
-    <input type="password" name="password"><br><br>
-    <button>Login</button>
-</form>
+    <!-- 
+        Loginformulier.
 
-<br>
-<a href="/register">register</a>
+        method="post"
+
+        Betekent dat gebruikersgegevens veilig(er)
+        via de request body worden verstuurd.
+
+        Geen action aanwezig:
+
+        -> formulier verstuurt standaard
+           naar dezelfde route/pagina.
+    -->
+    <form method="post" class="form-card">
+
+        <!-- ================= Username ================= -->
+
+        <!-- 
+            Inputveld voor gebruikersnaam.
+
+            name="username"
+
+            Deze naam wordt gebruikt door Flask
+            om de ingevoerde waarde op te halen.
+
+            placeholder toont voorbeeldtekst.
+        -->
+        <input
+            name="username"
+            placeholder="username"
+        >
+
+        <br><br>
+
+        <!-- ================= Password ================= -->
+
+        <!-- 
+            Wachtwoordveld.
+
+            type="password"
+
+            Zorgt ervoor dat ingevoerde tekens
+            verborgen weergegeven worden.
+        -->
+        <input
+            type="password"
+            name="password"
+        >
+
+        <br><br>
+
+        <!-- 
+            Login-knop.
+
+            Stuurt formuliergegevens door.
+        -->
+        <button>
+            Login
+        </button>
+
+    </form>
+
+    <br>
+
+    <!-- 
+        Link naar registratiepagina.
+
+        Hiermee kunnen nieuwe gebruikers
+        eerst een account aanmaken.
+    -->
+    <a href="/register">
+        register
+    </a>
 
 </div>
+
 </body>
+
 </html>
