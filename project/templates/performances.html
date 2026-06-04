@@ -54,7 +54,7 @@
             <td>
                 {% if p.wind_speed %}
                     {% if p.invalid_wind %}
-                        <span style="color:#f87171">{{ p.wind_speed }} </span>
+                        <span style="color:#f87171">{{ p.wind_direction }} {{ p.wind_speed }} m/s </span>
                     {% else %}
                         {{ p.wind_direction }} {{ p.wind_speed }} m/s
                     {% endif %}
@@ -68,8 +68,6 @@
                     <input type="hidden" name="id" value="{{ p.id }}">
                     <button type="submit" class="btn-action btn-delete">Delete</button>
                 </form>
-                
-                <button type="button" class="btn-action btn-edit" onclick="window.location.href='/edit/{{ p.id }}'">Edit</button>
             </td>
         </tr>
         {% endfor %}
