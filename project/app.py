@@ -4,38 +4,40 @@ from cs50 import SQL
 from flask import Flask, render_template, request, redirect, session
 import sqlite3
 
-# ================= FLASK APP INITIALISATIE =================
+
+# =========================================================
+# FLASK INITIALISATIE
+# =========================================================
 
 app = Flask(__name__)
 
-# Secret key is nodig voor sessiebeheer (login, admin-status, user_id)
+# Secret key is nodig om sessies te beheren (login, admin, user_id)
 app.secret_key = "geheim"
 
 
-# ================= TEMPLATE FILTER =================
+# =========================================================
+# TEMPLATE FILTER: DATUM FORMATTEREN
+# =========================================================
 
 @app.template_filter('format_date')
 def format_date(value):
     """
-    Custom Jinja filter om datums netjes te formatteren.
-
-    Doel:
-    - verschillende databank-formaten ondersteunen
-    - altijd output tonen als dd/mm/yyyy
+    Zet verschillende datumformaten om naar dd/mm/yyyy
+    zodat alles uniform wordt weergegeven in de frontend.
     """
 
-    # Als er geen waarde is -> lege string teruggeven
+    # Als er geen datum is → lege string teruggeven
     if not value:
         return ""
 
-    # Als het al een datetime object is
+    # Als waarde al een datetime object is → direct formatteren
     if isinstance(value, datetime):
         return value.strftime("%d/%m/%Y")
 
-    # Zet input om naar string en verwijder spaties
+    # Zet alles om naar string en verwijder spaties
     text = str(value).strip()
 
-    # Mogelijke formaten die uit database kunnen komen
+    # Verschillende mogelijke input-formaten uit database
     for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%Y/%m/%d", "%d-%m-%Y"):
         try:
             parsed = datetime.strptime(text, fmt)
@@ -43,39 +45,43 @@ def format_date(value):
         except ValueError:
             continue
 
-    # Als geen formaat matcht: toon originele tekst
+    # Als geen format matcht → originele waarde tonen
     return text
 
 
-# ================= DATABASE CONNECTIE =================
+# =========================================================
+# DATABASE CONNECTIE
+# =========================================================
 
-# cs50 SQL wrapper rond SQLite database
+# cs50 SQL wrapper voor SQLite database
 db = SQL("sqlite:///atletiek.db")
 
 
-# ================= CONSTANTEN =================
+# =========================================================
+# CONSTANTEN
+# =========================================================
 
-# Alle beschikbare disciplines in de app
+# Alle disciplines die in de app bestaan
 DISCIPLINES = ["100m", "200m", "400m", "800m"]
 
-# Disciplines waarbij wind een rol speelt
+# Disciplines waarbij wind belangrijk is (sprints)
 WIND_DISCIPLINES = ["100m", "200m"]
 
 
-# ================= DATABASE STRUCTUUR CHECK =================
+# =========================================================
+# DATABASE STRUCTUUR CHECK
+# =========================================================
 
 def ensure_wind_columns():
     """
-    Controleert of de tabel performances de juiste kolommen heeft.
-
-    Als de app op een nieuwe database draait,
-    worden ontbrekende kolommen automatisch toegevoegd.
+    Controleert of de database de juiste kolommen heeft.
+    Als ze ontbreken → worden ze automatisch toegevoegd.
     """
 
     conn = sqlite3.connect("atletiek.db")
     cursor = conn.cursor()
 
-    # Haal tabelstructuur op
+    # Haal alle kolommen op uit tabel performances
     cursor.execute("PRAGMA table_info(performances)")
     columns = [row[1] for row in cursor.fetchall()]
 
@@ -91,229 +97,238 @@ def ensure_wind_columns():
     conn.close()
 
 
-# Voer check meteen uit bij opstarten
+# Voer check uit bij opstarten van app
 ensure_wind_columns()
 
 
-# ================= RESULT PARSING =================
+# =========================================================
+# RESULT PARSING (voor sortering)
+# =========================================================
 
 def parse_result_seconds(result):
     """
-    Zet verschillende result-formaten om naar seconden.
-
-    Ondersteunde formaten:
-    - float (bv 12.34)
-    - mm:ss:hh
-    - ss:hh
-    - losse getallen
-
-    Wordt gebruikt om correct te sorteren (fastest/slowest)
+    Zet verschillende tijdformaten om naar seconden
+    zodat we correct kunnen sorteren (fastest/slowest).
     """
 
-    # Geen resultaat -> oneindig (achteraan sorteren)
     if result is None:
         return float('inf')
 
     try:
         return float(result)
-    except Exception:
+    except:
         pass
 
-    text = str(result)
+    parts = re.findall(r"\d+", str(result))
 
-    # Zoek alle cijfers in string
-    parts = re.findall(r"\d+", text)
-
-    if not parts:
-        return float('inf')
-
-    # mm:ss:hh
+    # mm:ss:hh formaat
     if len(parts) == 3:
-        minutes, seconds, hundredths = parts
-        return int(minutes) * 60 + int(seconds) + int(hundredths) / 100.0
+        m, s, h = parts
+        return int(m) * 60 + int(s) + int(h) / 100
 
-    # ss:hh
+    # ss:hh formaat
     if len(parts) == 2:
-        seconds, hundredths = parts
-        return int(seconds) + int(hundredths) / 100.0
+        s, h = parts
+        return int(s) + int(h) / 100
 
     # enkel getal
     if len(parts) == 1:
         return float(parts[0])
 
-    try:
-        return float(parts[0])
-    except Exception:
-        return float('inf')
+    return float('inf')
 
 
-# ================= HELPER FUNCTIONS =================
+# =========================================================
+# WIND LOGICA HELPER
+# =========================================================
 
 def annotate_wind(rows):
     """
-    Verrijkt database-rows met extra informatie:
+    Voegt extra informatie toe aan elke row:
 
-    - invalid_wind (voor rode waarschuwing in UI)
-    - wind_display (mooie string voor UI)
+    - wind_display (mooie tekst voor UI)
+    - invalid_wind (rode waarschuwing bij +2.0 m/s meewind)
     """
 
     for row in rows:
 
-        # standaardwaarden
         row["invalid_wind"] = False
         row["wind_display"] = ""
 
         wind_speed = row.get("wind_speed")
         wind_direction = row.get("wind_direction")
 
-        # geen winddata -> skip
+        # geen winddata → skip
         if wind_speed is None or wind_speed == "":
             continue
 
         try:
-            # omzetting naar float (ook komma's ondersteunen)
-            wind_speed = float(str(wind_speed).replace(',', '.'))
+            # ondersteunt komma en punt
+            wind_speed = float(str(wind_speed).replace(",", "."))
 
-            # richting normaliseren (case-insensitive)
-            direction_clean = str(wind_direction).strip().lower()
+            direction = str(wind_direction).strip().lower()
 
-            # teken bepalen voor display
-            if direction_clean == "meewind":
-                sign = "+"
-            else:
-                sign = "-"
+            # teken voor display
+            sign = "+" if direction == "meewind" else "-"
 
-            # mooie weergave voor frontend
             row["wind_display"] = f"{sign}{wind_speed:.1f} m/s"
 
-            # INVALID LOGICA:
-            # alleen meewind + >= 2.0 m/s is ongeldig
-            # tegenwind wordt nooit ongeldig
-            if direction_clean == "meewind" and wind_speed >= 2.0:
+            # ongeldig bij meewind >= 2.0 m/s
+            if direction == "meewind" and wind_speed >= 2.0:
                 row["invalid_wind"] = True
 
         except:
-            # bij fout gewoon leeg laten
-            row["wind_display"] = ""
+            # bij fout niets tonen
+            pass
 
     return rows
 
 
-# ================= LOGIN =================
+# =========================================================
+# LOGIN
+# =========================================================
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
 
-    # POST = gebruiker probeert in te loggen
+    # POST = login poging
     if request.method == "POST":
 
         username = request.form.get("username")
         password = request.form.get("password")
 
-        # HARD-CODED admin login
+        # admin login (hardcoded)
         if username == "Trainer" and password == "trainer123":
             session["admin"] = True
             return redirect("/admin")
 
-        # gewone user check in database
+        # gewone user login via database
         user = db.execute(
             "SELECT * FROM users WHERE username = ? AND password = ?",
             username, password
         )
 
-        # correcte login
         if len(user) == 1:
             session["user_id"] = user[0]["id"]
             return redirect("/")
-        else:
-            # foutmelding pagina
-            return render_template("error.html", message="Foute login")
 
-    # GET = toon loginpagina
+        return render_template("error.html", message="Foute login")
+
     return render_template("login.html")
 
 
-# ================= REGISTER =================
+# =========================================================
+# REGISTER
+# =========================================================
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
 
-    # nieuwe gebruiker aanmaken
+    # nieuwe gebruiker opslaan
     if request.method == "POST":
-
         db.execute(
             "INSERT INTO users (username, password) VALUES (?, ?)",
             request.form.get("username"),
             request.form.get("password")
         )
-
         return redirect("/login")
 
     return render_template("register.html")
 
 
-# ================= LOGOUT =================
+# =========================================================
+# LOGOUT
+# =========================================================
 
 @app.route("/logout")
 def logout():
 
-    # sessie volledig leegmaken
+    # sessie volledig wissen
     session.clear()
     return redirect("/login")
 
 
-# ================= HOME =================
+# =========================================================
+# HOMEPAGE
+# =========================================================
 
 @app.route("/")
 def index():
 
-    # enkel toegelaten als ingelogd
+    # enkel ingelogde gebruikers
     if "user_id" not in session:
         return redirect("/login")
 
-    return render_template(
-        "index.html",
-        disciplines=DISCIPLINES
-    )
+    return render_template("index.html", disciplines=DISCIPLINES)
 
 
-# ================= ADD PERFORMANCE =================
+# =========================================================
+# ADD PERFORMANCE
+# =========================================================
 
 @app.route("/add", methods=["POST"])
 def add():
+
+    # basis input ophalen
+    name = request.form.get("name")
+    result = request.form.get("result")
+    date = request.form.get("date")
 
     discipline = request.form.get("discipline")
     wind_speed = request.form.get("wind_speed")
     wind_direction = request.form.get("wind_direction")
 
-    # geen wind bij niet-sprint disciplines
+    # -----------------------------
+    # verplichte velden check
+    # -----------------------------
+    if not name or not result or not date or not wind_speed:
+        return render_template("error.html",
+                               message="Naam, resultaat, datum en windmeting zijn verplicht.")
+
+    # -----------------------------
+    # result validatie (tijd formaat)
+    # -----------------------------
+    if not re.match(r'^\d{1,2}"\d{2}"\d{2}$', result):
+        return render_template("error.html",
+                               message="Resultaat moet zo geformateerd zijn: 12\"02\'89 (min\"sec'ms)")
+
+    if len(result) != 8:
+        return render_template("error.html",
+                               message="Resultaat moet exact 8 tekens zijn.")
+
+    # -----------------------------
+    # wind validatie
+    # -----------------------------
+    if discipline in WIND_DISCIPLINES and not wind_speed:
+        return render_template("error.html",
+                               message="Wind verplicht voor 100m en 200m.")
+
     if discipline not in WIND_DISCIPLINES:
         wind_speed = None
         wind_direction = None
-
     else:
-        # lege waarde = None
         if wind_speed == "":
             wind_speed = None
 
-        # richting standaardiseren
         if wind_direction:
             wind_direction = wind_direction.lower()
 
         if wind_direction not in ["meewind", "tegenwind"]:
             wind_direction = None
 
+    # -----------------------------
     # opslaan in database
+    # -----------------------------
     db.execute("""
         INSERT INTO performances
         (user_id, name, discipline, result, date, wind_speed, wind_direction)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     """,
     session["user_id"],
-    request.form.get("name"),
+    name,
     discipline,
-    request.form.get("result"),
-    request.form.get("date"),
+    result,
+    date,
     wind_speed,
     wind_direction
     )
@@ -321,7 +336,9 @@ def add():
     return redirect("/performances")
 
 
-# ================= OVERZICHT PRESTATIES =================
+# =========================================================
+# OVERZICHT PRESTATIES
+# =========================================================
 
 @app.route("/performances")
 def performances():
@@ -330,8 +347,6 @@ def performances():
     if session.get("admin"):
         query = "SELECT * FROM performances"
         params = []
-
-    # user ziet enkel eigen prestaties
     else:
         if "user_id" not in session:
             return redirect("/login")
@@ -344,56 +359,34 @@ def performances():
 
     # filter op discipline
     if discipline and discipline in DISCIPLINES:
-        if "WHERE" in query:
-            query += " AND discipline = ?"
-        else:
-            query += " WHERE discipline = ?"
+        query += " AND discipline = ?" if "WHERE" in query else " WHERE discipline = ?"
         params.append(discipline)
 
-    order_options = {
-        "recent": "date ASC",
-        "oldest": "date DESC"
-    }
-
-    # sorting op tijd (complex omdat string -> seconds nodig is)
+    # sortering op tijd
     if sort in ["fastest", "slowest"]:
-
         rows = db.execute(query, *params)
-
-        rows = sorted(
-            rows,
-            key=lambda r: parse_result_seconds(r.get("result")),
-            reverse=(sort == "slowest")
-        )
-
+        rows = sorted(rows,
+                      key=lambda r: parse_result_seconds(r.get("result")),
+                      reverse=(sort == "slowest"))
     else:
-        order_by = order_options.get(sort)
-
-        if order_by:
-            query += f" ORDER BY {order_by}"
-        else:
-            query += " ORDER BY date DESC"
-
         rows = db.execute(query, *params)
 
-    # wind annotatie voor UI
     rows = annotate_wind(rows)
 
     return render_template(
         "performances.html",
         performances=rows,
-        disciplines=DISCIPLINES,
-        selected_discipline=discipline,
-        selected_sort=sort
+        disciplines=DISCIPLINES
     )
 
 
-# ================= ADMIN =================
+# =========================================================
+# ADMIN
+# =========================================================
 
 @app.route("/admin")
 def admin():
 
-    # alleen admin toegestaan
     if not session.get("admin"):
         return redirect("/login")
 
@@ -405,42 +398,53 @@ def admin():
 
     rows = annotate_wind(rows)
 
-    return render_template(
-        "admin.html",
-        performances=rows
-    )
+    return render_template("admin.html", performances=rows)
 
 
-# ================= DELETE =================
+# =========================================================
+# DELETE
+# =========================================================
 
 @app.route("/delete", methods=["POST"])
 def delete():
 
-    # verwijder prestatie op basis van ID
-    db.execute(
-        "DELETE FROM performances WHERE id = ?",
-        request.form.get("id")
-    )
+    # verwijder performance op basis van id
+    db.execute("DELETE FROM performances WHERE id = ?",
+               request.form.get("id"))
 
     return redirect("/performances")
 
 
-# ================= EDIT =================
+# =========================================================
+# EDIT PERFORMANCE
+# =========================================================
 
 @app.route("/edit/<int:id>", methods=["GET", "POST"])
 def edit(id):
 
-    # alleen admin mag bewerken
     if not session.get("admin"):
         return redirect("/login")
 
     if request.method == "POST":
 
+        name = request.form.get("name")
+        result = request.form.get("result")
+        date = request.form.get("date")
+
         discipline = request.form.get("discipline")
         wind_speed = request.form.get("wind_speed")
         wind_direction = request.form.get("wind_direction")
 
-        # zelfde windlogica als add()
+        # result validatie
+        if not re.match(r'^\d{1,2}"\d{2}"\d{2}$', result):
+            return render_template("error.html",
+                                   message="Ongeldig resultaat")
+
+        if len(result) != 8:
+            return render_template("error.html",
+                                   message="Resultaat moet 8 tekens zijn")
+
+        # wind logica
         if discipline not in WIND_DISCIPLINES:
             wind_speed = None
             wind_direction = None
@@ -454,66 +458,45 @@ def edit(id):
 
         db.execute("""
             UPDATE performances
-            SET name = ?, discipline = ?, result = ?, date = ?, wind_speed = ?, wind_direction = ?
-            WHERE id = ?
+            SET name=?, discipline=?, result=?, date=?, wind_speed=?, wind_direction=?
+            WHERE id=?
         """,
-        request.form.get("name"),
-        discipline,
-        request.form.get("result"),
-        request.form.get("date"),
-        wind_speed,
-        wind_direction,
-        id
-        )
+        name, discipline, result, date,
+        wind_speed, wind_direction, id)
 
         return redirect("/admin")
 
-    # bestaande data ophalen
-    p = db.execute(
-        "SELECT * FROM performances WHERE id = ?",
-        id
-    )[0]
+    p = db.execute("SELECT * FROM performances WHERE id = ?", id)[0]
 
-    return render_template(
-        "edit.html",
-        p=p,
-        disciplines=DISCIPLINES
-    )
+    return render_template("edit.html", p=p, disciplines=DISCIPLINES)
 
 
-# ================= PR PAGINA =================
+# =========================================================
+# PR PAGINA
+# =========================================================
 
 @app.route("/pr", methods=["GET", "POST"])
 def pr():
 
-    # toegang controleren
     if not session.get("admin") and "user_id" not in session:
         return redirect("/login")
 
-    # admin ziet geen eigen PR blok
-    if session.get("admin"):
-        my_results = []
-
-    else:
-        # eigen PR per discipline (min = beste tijd)
-        my_results = db.execute("""
-            SELECT discipline, MIN(result) as best
-            FROM performances
-            WHERE user_id = ?
-            GROUP BY discipline
-        """, session["user_id"])
+    my_results = [] if session.get("admin") else db.execute("""
+        SELECT discipline, MIN(result) as best
+        FROM performances
+        WHERE user_id=?
+        GROUP BY discipline
+    """, session["user_id"])
 
     search_results = None
 
-    # zoeken naar andere gebruiker
     if request.method == "POST":
-
         name = request.form.get("name")
 
         search_results = db.execute("""
             SELECT discipline, MIN(result) as best
             FROM performances
-            WHERE name = ? COLLATE NOCASE
+            WHERE name=? COLLATE NOCASE
             GROUP BY discipline
         """, name)
 
@@ -525,7 +508,9 @@ def pr():
     )
 
 
-# ================= APP START =================
+# =========================================================
+# START APP
+# =========================================================
 
 if __name__ == "__main__":
     app.run(debug=True)
