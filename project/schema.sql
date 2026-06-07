@@ -35,17 +35,17 @@ CREATE TABLE IF NOT EXISTS performances (
     -- Naam van de atleet (kan gelijk zijn aan username of apart ingevoerd)
     name TEXT,
 
-    -- Discipline van de prestatie (bv. 100m, 200m, 400m, 800m)
+    -- Discipline(bv. 100m, 200m, 400m, 800m)
     discipline TEXT,
 
     -- Resultaat van de prestatie
-    -- REAL = numerieke waarde (bv. tijd of afstand)
+    -- REAL = numerieke waarde
     result REAL,
 
-    -- Datum waarop de prestatie is behaald
+    -- Datum 
     date TEXT,
 
-    -- Windsnelheid (belangrijk voor sprintnummers zoals 100m en 200m)
+    -- Windsnelheid (100m en 200m)
     wind_speed REAL,
 
     -- Windrichting:

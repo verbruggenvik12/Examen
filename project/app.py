@@ -75,7 +75,7 @@ WIND_DISCIPLINES = ["100m", "200m"]
 def ensure_wind_columns():
     """
     Controleert of de database de juiste kolommen heeft.
-    Als ze ontbreken → worden ze automatisch toegevoegd.
+    Als ze ontbreken -> worden ze automatisch toegevoegd.
     """
 
     conn = sqlite3.connect("atletiek.db")
@@ -270,9 +270,9 @@ def index():
 def add():
 
     # basis input ophalen
-    name = request.form.get("name")
-    result = request.form.get("result")
-    date = request.form.get("date")
+    name = request.form.get("name", "").strip()
+    result = request.form.get("result", "").strip()
+    date = request.form.get("date", "").strip()
 
     discipline = request.form.get("discipline")
     wind_speed = request.form.get("wind_speed")
@@ -281,40 +281,54 @@ def add():
     # -----------------------------
     # verplichte velden check
     # -----------------------------
-    if not name or not result or not date or not wind_speed:
-        return render_template("error.html",
-                               message="Naam, resultaat, datum en windmeting zijn verplicht.")
+    # wind zit hier bewust NIET tussen
+    if not name or not result or not date:
+        return render_template(
+            "error.html",
+            message="Naam, resultaat en datum zijn verplicht."
+        )
 
-    # -----------------------------
-    # result validatie (tijd formaat)
-    # -----------------------------
-    if not re.match(r'^\d{1,2}"\d{2}"\d{2}$', result):
-        return render_template("error.html",
-                               message="Resultaat moet zo geformateerd zijn: 12\"02\'89 (min\"sec'ms)")
+    # ================= RESULT VALIDATIE =================
 
+    # correct formaat: 01'59"66
+    if not re.match(r'^\d{1,2}\'\d{2}"\d{2}$', result):
+        return render_template(
+            "error.html",
+            message="Resultaat moet in formaat 01'59\"66 zijn."
+        )
+
+    # exact 8 tekens
     if len(result) != 8:
-        return render_template("error.html",
-                               message="Resultaat moet exact 8 tekens zijn.")
+        return render_template(
+            "error.html",
+            message="Resultaat moet exact 8 tekens bevatten."
+        )
 
     # -----------------------------
-    # wind validatie
+    # WIND VALIDATIE
     # -----------------------------
-    if discipline in WIND_DISCIPLINES and not wind_speed:
-        return render_template("error.html",
-                               message="Wind verplicht voor 100m en 200m.")
+    # Alleen 100m en 200m vereisen wind
+    if discipline in WIND_DISCIPLINES:
 
-    if discipline not in WIND_DISCIPLINES:
-        wind_speed = None
-        wind_direction = None
-    else:
-        if wind_speed == "":
-            wind_speed = None
+        if not wind_speed or wind_speed.strip() == "":
+            return render_template(
+                "error.html",
+                message="Windmeting is verplicht voor 100m en 200m."
+            )
 
         if wind_direction:
-            wind_direction = wind_direction.lower()
+            wind_direction = wind_direction.lower().strip()
 
         if wind_direction not in ["meewind", "tegenwind"]:
-            wind_direction = None
+            return render_template(
+                "error.html",
+                message="Kies meewind of tegenwind."
+            )
+
+    # 400m / 800m → wind verwijderen
+    else:
+        wind_speed = None
+        wind_direction = None
 
     # -----------------------------
     # opslaan in database
@@ -436,7 +450,7 @@ def edit(id):
         wind_direction = request.form.get("wind_direction")
 
         # result validatie
-        if not re.match(r'^\d{1,2}"\d{2}"\d{2}$', result):
+        if not re.match(r'^\d{1,2}\'\d{2}"\d{2}$', result):
             return render_template("error.html",
                                    message="Ongeldig resultaat")
 
