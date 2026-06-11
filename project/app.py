@@ -143,44 +143,67 @@ def parse_result_seconds(result):
 # =========================================================
 
 def annotate_wind(rows):
-    """
-    Voegt extra informatie toe aan elke row:
 
-    - wind_display (mooie tekst voor UI)
-    - invalid_wind (rode waarschuwing bij +2.0 m/s meewind)
-    """
-
+    # Loop door alle prestaties die uit de database komen
     for row in rows:
 
+        # Standaardwaarde:
+        # prestatie is geldig totdat het tegendeel bewezen wordt
         row["invalid_wind"] = False
-        row["wind_display"] = ""
 
+        # Windsnelheid ophalen uit database
         wind_speed = row.get("wind_speed")
+
+        # Windrichting ophalen uit database
         wind_direction = row.get("wind_direction")
 
-        # geen winddata → skip
+        # Als er geen windsnelheid bestaat:
+        # niets controleren en naar volgende rij gaan
         if wind_speed is None or wind_speed == "":
             continue
 
         try:
-            # ondersteunt komma en punt
-            wind_speed = float(str(wind_speed).replace(",", "."))
 
-            direction = str(wind_direction).strip().lower()
+            # Zet windsnelheid om naar float
+            # Ondersteunt zowel:
+            # 1.5
+            # 1,5
+            wind_speed = float(
+                str(wind_speed).replace(",", ".")
+            )
 
-            # teken voor display
-            sign = "+" if direction == "meewind" else "-"
+            # Windrichting opschonen:
+            # - spaties verwijderen
+            # - alles naar kleine letters
+            direction = str(
+                wind_direction
+            ).strip().lower()
 
-            row["wind_display"] = f"{sign}{wind_speed:.1f} m/s"
-
-            # ongeldig bij meewind >= 2.0 m/s
+            # ===============================
+            # ONGELDIGE WIND CONTROLE
+            # ===============================
+            #
+            # Volgens atletiekregels:
+            # Meewind van 2.0 m/s of meer
+            # maakt een prestatie ongeldig
+            #
+            # Tegenwind maakt een prestatie
+            # nooit ongeldig
+            #
             if direction == "meewind" and wind_speed >= 2.0:
+
+                # Extra veld toevoegen
+                # zodat HTML het resultaat rood kan tonen
                 row["invalid_wind"] = True
 
-        except:
-            # bij fout niets tonen
+        except ValueError:
+
+            # Als windsnelheid geen geldig getal is
+            # (bv. tekst of foutieve data)
+            # dan niets doen
             pass
 
+    # Bewerkte lijst teruggeven
     return rows
 
 
@@ -200,7 +223,7 @@ def login():
         # admin login (hardcoded)
         if username == "Trainer" and password == "trainer123":
             session["admin"] = True
-            return redirect("/admin")
+            return redirect("/admin") 
 
         # gewone user login via database
         user = db.execute(
